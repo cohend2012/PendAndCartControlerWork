@@ -19,6 +19,8 @@ from sensor_msgs.msg import JointState
 from std_srvs.srv import Empty
 from gazebo_msgs.msg import LinkState
 from geometry_msgs.msg import Point
+
+PI = 3.14159
     
 class Testbed(object):
     """ Testbed, for the pupose of testing cart-pole system """
@@ -74,7 +76,7 @@ class Testbed(object):
             #w = period_factor * elapsed.to_sec()
             #return amplitude_factor * math.cos(w*2*math.pi)
 	
-        while not rospy.is_shutdown() and math.fabs(loc_x-self.pos_cart)>0.001:
+        while not rospy.is_shutdown() and math.fabs(loc_x-self.pos_cart)>0.0001:
 	    print(math.fabs(loc_x-self.pos_cart)>0.01)
 
             if math.fabs(self.pos_cart) <= 2.4:
@@ -160,13 +162,30 @@ def main():
     """
     print("Initializing node... ")
     rospy.init_node('cart_wobble')
+    pole_hight = 0.5
     cart = Testbed()
     rospy.on_shutdown(cart.clean_shutdown)
-    x_list = [1.0,2.0]
-    y_list = [1.0,2.0]
+    x_list = [0.0,0.0,0.0,0.0,1.0,1.5,-1.0,-1.0]
+    y_list = [-0.2,0.2,0.5,-0.5,-0.5,0.0,-0.2,0.2]
     for index in range(len(x_list)):
-	theta = math.acos(y_list[index]/2.0)
-    	cart.wobble(x_list[index],theta)
+	print(y_list[index]/pole_hight)
+	if y_list[index] > 0.5 or  y_list[index] < 0.0:
+	
+		theta = -1.0*math.acos(-1.0*y_list[index]/pole_hight)
+	else:
+
+		theta = math.acos(y_list[index]/pole_hight)
+
+	offset = math.sin(theta)*pole_hight
+	print("theta",theta)
+	print("offset",offset)
+	if offset<PI/2.0 and offset>3.0*PI/2:
+		loc_x_offset = x_list[index]+offset
+	
+	else:
+		loc_x_offset = x_list[index]-offset
+	#theta = -3.14
+    	cart.wobble(loc_x_offset,theta)
    	print("done")
 
 
